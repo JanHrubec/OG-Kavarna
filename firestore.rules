@@ -1,0 +1,43 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Check if the request is from an authenticated admin
+    function isAdmin() {
+      return request.auth != null;
+    }
+
+    // Categories: Cash register reads; only admin can create, edit, or delete
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Menu items: Cash register reads and updates stock; admin can add, edit, or delete
+    match /menuItems/{id} {
+      allow read: if true;
+      allow update: if true;
+      allow create, delete: if isAdmin();
+    }
+
+    // People (Staff): Cash register reads; only admin can add, edit, or delete
+    match /people/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Sales: Cash register can read and record sales; only admin can edit, delete, or deleteAll
+    match /sales/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // Shifts: Staff can read, log, and edit shifts; only admin can delete records
+    match /shifts/{id} {
+      allow read, create, update: if true;
+      allow delete: if isAdmin();
+    }
+  }
+}
